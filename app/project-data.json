@@ -1,0 +1,31 @@
+{
+  "projects": [
+    {
+      "dataLabel": "Sample project",
+      "name": "Sample: Atlas Refresh",
+      "owner": "Jordan Lee (sample)",
+      "status": "In progress",
+      "recentActivity": "Sample update: the team completed a navigation review.",
+      "priority": "High",
+      "summary": "Sample record for demonstrating a project with an active design milestone."
+    },
+    {
+      "dataLabel": "Sample project",
+      "name": "Sample: Harbor Metrics",
+      "owner": "Casey Morgan (sample)",
+      "status": "At risk",
+      "recentActivity": "Sample update: a data validation check is being reviewed.",
+      "priority": "Medium",
+      "summary": "Sample record for demonstrating a project that needs a closer look."
+    },
+    {
+      "dataLabel": "Sample project",
+      "name": "Sample: Orchard Launch",
+      "owner": "Riley Chen (sample)",
+      "status": "Planning",
+      "recentActivity": "Sample update: initial launch milestones were drafted.",
+      "priority": "Low",
+      "summary": "Sample record for demonstrating an early-stage project."
+    }
+  ]
+}

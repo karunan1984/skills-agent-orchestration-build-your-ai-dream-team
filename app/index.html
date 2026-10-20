@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A clear overview of project status, ownership, and recent activity.">
+    <title>Project Pulse</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="page-header">
+        <p class="eyebrow">Team overview</p>
+        <h1>Project Pulse</h1>
+        <p>See project ownership, progress, and recent updates at a glance.</p>
+      </header>
+
+      <section class="summary" aria-labelledby="projects-heading">
+        <h2 id="projects-heading">Projects</h2>
+        <p id="project-count">Loading project data…</p>
+      </section>
+
+      <div id="dashboard-state" class="empty-state" role="status" aria-live="polite">
+        <h2>Loading projects</h2>
+        <p>Please wait while the project data is loaded.</p>
+      </div>
+
+      <section id="project-grid" class="project-grid" aria-label="Project cards"></section>
+    </main>
+
+    <script>
+      "use strict";
+
+      const projectGrid = document.getElementById("project-grid");
+      const dashboardState = document.getElementById("dashboard-state");
+      const projectCount = document.getElementById("project-count");
+
+      function getDisplayValue(value) {
+        return typeof value === "string" && value.trim() ? value.trim() : "Not provided";
+      }
+
+      function addTextElement(parent, tagName, className, text) {
+        const element = document.createElement(tagName);
+        if (className) {
+          element.className = className;
+        }
+        element.textContent = text;
+        parent.append(element);
+        return element;
+      }
+
+      function addMetaField(meta, label, value) {
+        const field = document.createElement("div");
+        addTextElement(field, "dt", "", label);
+        addTextElement(field, "dd", "", value);
+        meta.append(field);
+      }
+
+      function createProjectCard(project) {
+        const card = document.createElement("article");
+        card.className = "project-card";
+
+        const heading = document.createElement("header");
+        heading.className = "project-card__heading";
+        addTextElement(heading, "h2", "", getDisplayValue(project.name));
+
+        const badges = document.createElement("div");
+        badges.className = "project-card__badges";
+        addTextElement(badges, "span", "status-badge", getDisplayValue(project.status));
+        addTextElement(badges, "span", "priority-badge", getDisplayValue(project.priority));
+        heading.append(badges);
+        card.append(heading);
+
+        const meta = document.createElement("dl");
+        meta.className = "project-meta";
+        addMetaField(meta, "Owner", getDisplayValue(project.owner));
+        card.append(meta);
+
+        const sourceLabel = document.createElement("p");
+        sourceLabel.className = "project-card__source";
+        sourceLabel.textContent = getDisplayValue(project.dataLabel);
+        card.append(sourceLabel);
+
+        const activity = document.createElement("section");
+        activity.className = "activity";
+        addTextElement(activity, "h3", "", "Recent activity");
+        addTextElement(activity, "p", "", getDisplayValue(project.recentActivity));
+        card.append(activity);
+
+        addTextElement(card, "p", "project-card__summary", getDisplayValue(project.summary));
+        return card;
+      }
+
+      function showState(kind, heading, message) {
+        dashboardState.className = kind;
+        dashboardState.replaceChildren();
+        addTextElement(dashboardState, "h2", "", heading);
+        addTextElement(dashboardState, "p", "", message);
+        dashboardState.hidden = false;
+      }
+
+      async function loadProjects() {
+        try {
+          const response = await fetch("project-data.json", { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`Project data request failed with status ${response.status}.`);
+          }
+
+          const data = await response.json();
+          if (!data || typeof data !== "object" || !Array.isArray(data.projects)) {
+            throw new Error('Project data must contain a top-level "projects" array.');
+          }
+
+          if (data.projects.some((project) => !project || typeof project !== "object" || Array.isArray(project))) {
+            throw new Error("Each project entry must be an object.");
+          }
+
+          if (data.projects.length === 0) {
+            projectCount.textContent = "No projects";
+            showState("empty-state", "No projects to display", "Add project records to project-data.json to populate this dashboard.");
+            return;
+          }
+
+          const cards = data.projects.map(createProjectCard);
+          projectGrid.replaceChildren(...cards);
+          projectCount.textContent = `${cards.length} ${cards.length === 1 ? "project" : "projects"}`;
+          dashboardState.hidden = true;
+        } catch (error) {
+          projectCount.textContent = "Project data unavailable";
+          showState(
+            "error-state",
+            "Unable to load projects",
+            "The project data could not be loaded or has an invalid format. Check project-data.json and reload the page."
+          );
+          console.error("Project Pulse data loading failed:", error);
+        }
+      }
+
+      loadProjects();
+    </script>
+  </body>
+</html>
